@@ -1,4 +1,4 @@
-# Tower Defense Game
+# Tower Defense Game (Work in Progress)
 
 A brutalist/industrial-styled tower defense game built with TypeScript, Vite, and Three.js.
 
