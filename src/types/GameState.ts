@@ -4,6 +4,7 @@ export interface GameState {
     currentLevel: number;
     currentRound: number;
     baseHealth: number;
+    maxBaseHealth: number;
     points: number;
     isGameOver: boolean;
     isPaused: boolean;
@@ -31,6 +32,7 @@ export const INITIAL_GAME_STATE: GameState = {
     currentLevel: 1,
     currentRound: 1,
     baseHealth: 100,
+    maxBaseHealth: 100,
     points: 300,
     isGameOver: false,
     isPaused: false,
@@ -40,7 +42,7 @@ export const INITIAL_GAME_STATE: GameState = {
 
 // Calculate total enemies for a given round (5 rounds, 20-100 enemies)
 export const calculateRoundEnemies = (round: number): number => {
-    return round * 20;  // Round 1: 20, Round 2: 40, Round 3: 60, Round 4: 80, Round 5: 100
+    return round * 10;  // Round 1: 10, Round 2: 20, Round 3: 30, Round 4: 40, Round 5: 50
 };
 
 // Calculate base health for a given round

@@ -99,7 +99,6 @@ export class Enemy {
         const material = this.mesh.material as THREE.MeshPhongMaterial;
         
         // Flash red when hit
-        const originalColor = material.color.clone();
         material.color.setHex(0xff0000);
         
         setTimeout(() => {
@@ -134,5 +133,13 @@ export class Enemy {
 
     public isDefeated(): boolean {
         return this.isDead;
+    }
+
+    public getType(): EnemyType {
+        return this.stats.type;
+    }
+
+    public isElite(): boolean {
+        return this.stats.isElite || false;
     }
 } 

@@ -30,19 +30,19 @@ export interface EnemyStats {
 const BASE_ENEMY_STATS: Record<EnemyType, Omit<EnemyStats, 'isElite'>> = {
     [EnemyType.LIGHT]: {
         type: EnemyType.LIGHT,
-        health: 40,
+        health: 30,
         speed: 2,
         pointsValue: 10
     },
     [EnemyType.NORMAL]: {
         type: EnemyType.NORMAL,
-        health: 80,
+        health: 60,
         speed: 1.5,
         pointsValue: 20
     },
     [EnemyType.HEAVY]: {
         type: EnemyType.HEAVY,
-        health: 120,
+        health: 80,
         speed: 1,
         pointsValue: 30
     }
@@ -80,7 +80,7 @@ export const TOWER_STATS: Record<TowerType, TowerStats> = {
     },
     [TowerType.HEAVY]: {
         type: TowerType.HEAVY,
-        fireRate: 1,
+        fireRate: 0.5,
         damage: 10,
         cost: 150,
         range: 20

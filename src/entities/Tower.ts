@@ -7,8 +7,8 @@ export class Tower {
     private stats: TowerStats;
     private lastFireTime: number = 0;
     private position: THREE.Vector3;
-    private currentTarget: Enemy | null = null;
     private type: TowerType;
+    private currentTarget: Enemy | null = null;
 
     constructor(type: TowerType, position: THREE.Vector3) {
         this.type = type;
@@ -55,60 +55,48 @@ export class Tower {
         }
     }
 
-    public update(deltaTime: number, enemies: Enemy[]): Enemy | null {
-        // Use performance.now() for accurate time tracking
+    public update(_deltaTime: number, enemies: Enemy[]): Enemy | null {
         const currentTime = performance.now();
         
-        // Check if enough time has passed to fire again
-        if (currentTime - this.lastFireTime >= (1000 / this.stats.fireRate)) {
-            // Find new target if we don't have one or current target is dead/out of range
-            if (!this.currentTarget || 
-                this.currentTarget.isDefeated() || 
-                !this.isInRange(this.currentTarget)) {
-                this.currentTarget = this.findTarget(enemies);
-            }
-
-            if (this.currentTarget && this.isInRange(this.currentTarget)) {
-                this.fire(this.currentTarget);
-                this.lastFireTime = currentTime;
-                return this.currentTarget;
-            }
+        // Check if enough time has passed since last fire
+        if (currentTime - this.lastFireTime < (1000 / this.stats.fireRate)) {
+            return null;
         }
-        
-        return null;
-    }
 
-    private isInRange(enemy: Enemy): boolean {
-        // Get 2D positions (ignoring height) for range calculation
-        const towerPos = new THREE.Vector2(this.position.x, this.position.z);
-        const enemyPos = enemy.getPosition();
-        const enemyPos2D = new THREE.Vector2(enemyPos.x, enemyPos.z);
-        
-        // Calculate distance in 2D space
-        return towerPos.distanceTo(enemyPos2D) <= (this.stats.range || 10);
-    }
-
-    private findTarget(enemies: Enemy[]): Enemy | null {
-        // Find closest enemy in range that isn't defeated
-        let closestEnemy: Enemy | null = null;
-        let closestDistance = Infinity;
-        
-        const towerPos = new THREE.Vector2(this.position.x, this.position.z);
-        
-        enemies.forEach(enemy => {
-            if (!enemy.isDefeated()) {
-                const enemyPos = enemy.getPosition();
-                const enemyPos2D = new THREE.Vector2(enemyPos.x, enemyPos.z);
-                const distance = towerPos.distanceTo(enemyPos2D);
-                
-                if (distance <= (this.stats.range || 10) && distance < closestDistance) {
-                    closestDistance = distance;
-                    closestEnemy = enemy;
+        // Check if current target is still valid
+        if (this.currentTarget) {
+            if (this.currentTarget.isDefeated()) {
+                this.currentTarget = null;
+            } else {
+                const distance = this.position.distanceTo(this.currentTarget.getPosition());
+                if (distance > (this.stats.range || 10)) {
+                    this.currentTarget = null;
                 }
             }
-        });
-        
-        return closestEnemy;
+        }
+
+        // If no current target, find closest enemy in range
+        if (!this.currentTarget) {
+            let closestDistance = Infinity;
+            enemies.forEach(enemy => {
+                if (!enemy.isDefeated()) {
+                    const distance = this.position.distanceTo(enemy.getPosition());
+                    if (distance <= (this.stats.range || 10) && distance < closestDistance) {
+                        closestDistance = distance;
+                        this.currentTarget = enemy;
+                    }
+                }
+            });
+        }
+
+        // Fire at current target if we have one
+        if (this.currentTarget) {
+            this.fire(this.currentTarget);
+            this.lastFireTime = currentTime;
+            return this.currentTarget;
+        }
+
+        return null;
     }
 
     private fire(target: Enemy): void {

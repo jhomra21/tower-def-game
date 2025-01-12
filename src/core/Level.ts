@@ -2,10 +2,11 @@ import * as THREE from 'three';
 import { LevelConfig } from '../types/GameState';
 import { Tower } from '../entities/Tower';
 import { Enemy } from '../entities/Enemy';
+import { EnemyType } from '../types/GameTypes';
 
 interface LevelCallbacks {
     onEnemyReachBase: () => void;
-    onEnemyDefeated: (pointsValue: number) => void;
+    onEnemyDefeated: (pointsValue: number, enemyType: EnemyType, isElite: boolean) => void;
 }
 
 export class Level {
@@ -16,7 +17,7 @@ export class Level {
     private ground!: THREE.Mesh;
     private paths: THREE.Line[] = [];
     private callbacks: LevelCallbacks;
-    private selectedTower: Tower | null = null;
+    private base!: THREE.Mesh;
 
     constructor(scene: THREE.Scene, config: LevelConfig, callbacks: LevelCallbacks) {
         this.scene = scene;
@@ -54,9 +55,9 @@ export class Level {
             color: 0x00ff00,
             flatShading: true
         });
-        const base = new THREE.Mesh(baseGeometry, baseMaterial);
-        base.position.copy(this.config.basePosition);
-        this.scene.add(base);
+        this.base = new THREE.Mesh(baseGeometry, baseMaterial);
+        this.base.position.copy(this.config.basePosition);
+        this.scene.add(this.base);
     }
 
     private createPaths(): void {
@@ -91,7 +92,11 @@ export class Level {
             if (hitEnemy) {
                 const wasDefeated = hitEnemy.takeDamage(tower.getStats().damage);
                 if (wasDefeated) {
-                    this.callbacks.onEnemyDefeated(hitEnemy.getStats().pointsValue);
+                    this.callbacks.onEnemyDefeated(
+                        hitEnemy.getStats().pointsValue,
+                        hitEnemy.getType(),
+                        hitEnemy.isElite()
+                    );
                 }
             }
         });
@@ -121,6 +126,7 @@ export class Level {
         this.towers.forEach(tower => this.scene.remove(tower.getMesh()));
         this.enemies.forEach(enemy => this.scene.remove(enemy.getMesh()));
         this.scene.remove(this.ground);
+        this.scene.remove(this.base);
     }
 
     public getValidTowerPosition(position: THREE.Vector3): boolean {
@@ -137,29 +143,13 @@ export class Level {
         });
     }
 
-    public selectTowerAtPosition(position: THREE.Vector3): Tower | null {
-        // Find tower closest to click position within 1 unit
-        let closestTower: Tower | null = null;
-        let closestDistance = 1; // Only select within 1 unit
-
+    public getTowerAtPosition(position: THREE.Vector3): Tower | null {
         for (const tower of this.towers) {
-            const distance = position.distanceTo(tower.getPosition());
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestTower = tower;
+            if (tower.getPosition().distanceTo(position) < 1) {
+                return tower;
             }
         }
-
-        this.selectedTower = closestTower;
-        return closestTower;
-    }
-
-    public getSelectedTower(): Tower | null {
-        return this.selectedTower;
-    }
-
-    public clearTowerSelection(): void {
-        this.selectedTower = null;
+        return null;
     }
 
     public removeTower(tower: Tower): void {
@@ -167,19 +157,7 @@ export class Level {
         if (index !== -1) {
             this.towers.splice(index, 1);
             this.scene.remove(tower.getMesh());
-            if (this.selectedTower === tower) {
-                this.selectedTower = null;
-            }
         }
-    }
-
-    public moveTower(tower: Tower, newPosition: THREE.Vector3): boolean {
-        // Check if new position is valid
-        if (this.getValidTowerPosition(newPosition)) {
-            tower.moveTo(newPosition);
-            return true;
-        }
-        return false;
     }
 
     public getTowerCount(): number {

@@ -34,10 +34,6 @@ export class HealthBar {
         
         // Create text sprite for health value
         const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.width = 256;
-        canvas.height = 64;
-        
         const texture = new THREE.CanvasTexture(canvas);
         const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
         this.textSprite = new THREE.Sprite(spriteMaterial);

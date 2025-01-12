@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@vitejs/plugin-react-swc": "^3.7.2",
     "three": "^0.160.0"
   },
   "devDependencies": {
